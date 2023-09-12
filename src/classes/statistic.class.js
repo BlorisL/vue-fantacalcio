@@ -4,7 +4,7 @@ export class Statistic {
         this.role = role;
         this.roleMantra = roleMantra;
         this.team = team;
-        this.Pv = pv;
+        this.pv = pv;
         this.mv = mv;
         this.fm = fm;
         this.gf = gf;
@@ -17,7 +17,6 @@ export class Statistic {
         this.amm = amm;
         this.esp = esp;
         this.au = au;
-        this.references = [];
     }
 
     getYear() { return this.year; }
@@ -73,14 +72,5 @@ export class Statistic {
     getAu() { return this.au; }
     setAu(au) { this.au = au; return this; }
 
-    setReferences(references = []) {
-        const keys = Object.keys(references);
-        if(!references || references.length < keys.length) {
-            references = Object.keys(keys);
-        }
-        this.references = references;
-        return this;
-    }
-    getReferences() { return this.references; }
-    getPropByReference(index) { return index in this.references ? this[Object.keys(references)[index]] : null; }
+    getPropByName(name) { return name in this ? this[name] : null; }
 }

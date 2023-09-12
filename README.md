@@ -1,7 +1,32 @@
-# Vue 3 + Vite
+# vue-fantacalcio
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
 
-## Recommended IDE Setup
+## Description
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur) + [TypeScript Vue Plugin (Volar)](https://marketplace.visualstudio.com/items?itemName=Vue.vscode-typescript-vue-plugin).
+Un progetto in vue per organizzare la propria squadra durante l'asta del fantacalcio.
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [License](#license)
+
+## Installation
+
+```bash
+npm install
+```
+
+## Usage 
+
+```
+npm run dev
+```
+
+## License
+
+Code licensed under the [MIT License](https://github.com/BlorisL/php-tsuruya/blob/main/LICENSE).
+
+Do whatever you want with this code, but remember opensource projects work with the help of the community so would be really useful if any errors, updates, features or ideas were reported.
+
+[Share with me a cup of tea](https://www.buymeacoffee.com/bloris) ☕

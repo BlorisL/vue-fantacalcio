@@ -1,7 +1,66 @@
 import { ref, reactive } from 'vue'
 
-class Sorting {
-    constructor(type, content = null, sorting = null, reference = null) {
+class Order {
+    constructor(index = null, type = null, callback = null) {
+        this.index = index;
+        this.setType(type).setCallback(callback);
+    }
+
+    setIndex(index = null) { this.index = index; return this; }
+    getIndex() { return this.index; }
+
+    setType(type = null) {
+        switch(type) {
+            case false: 
+                this.type = false; 
+                this.setClasses('fa-solid', 'fa-sort-down');
+                break;
+            case null: 
+                this.type = null; 
+                this.setClasses('fa-solid', 'fa-sort');
+                break;
+            case true: 
+                this.type = true; 
+                this.setClasses('fa-solid', 'fa-sort-up');
+                break;
+        }
+        return this;
+    }
+    getType() { return this.type; }
+    toggleType() {
+        let type = this.getType();
+        switch(type) {
+            case true: type = false; break;
+            case false: type = null; break;
+            case null: type = true; break;
+        }
+        this.setType(type);
+        return this;
+    }
+
+    setClasses(...classes) { 
+        if(this.getClasses() == null) {
+            this.classes = ref([]);
+        }
+        this.classes.value = classes; 
+        return this; 
+    }
+    getClasses() { return this.classes; }
+
+    setCallback(callback = false) {
+        if(callback instanceof Function) {
+            this.callback = () => { this.toggleType(); callback(); };
+        } else {
+            this.callback = () => { this.toggleType(); };
+        }
+    }
+    getCallback() { 
+        this.callback(); 
+    }
+}
+
+class Column {
+    constructor(type, label, content = null, order = null) {
         this.type = type;
         switch(this.type) {
             case 'text':
@@ -17,12 +76,15 @@ class Sorting {
                 this.model = null;
                 break;
         }
-        this.reference = reference;
-        this.setSorting(sorting);
+        this.label = label;
+        this.order = false;
     }
 
     setType(type) { this.type = type; return this; }
     getType() { return this.type; }
+
+    setLabel(label) { this.label = label; return this; }
+    getLabel() { return this.label; }
 
     isCheckbox() { return this.getType() == 'checkbox'; }
     isText() { return this.getType() == 'text'; }
@@ -33,92 +95,66 @@ class Sorting {
     setModel(model) { this.model = model; return this; }
     getModel() { return this.model; }
 
-    setSorting(sorting) { 
-        if(sorting) {
-            this.sorting = reactive({ type: false });
-            this.sorting.event = () => {
-                switch(this.sorting.type) {
-                    case true: 
-                        this.sorting.type = false; 
-                        this.sorting.classes = ['fa-solid', 'fa-sort-down'];
-                        break;
-                    case false: 
-                        this.sorting.type = null; 
-                        this.sorting.classes = ['fa-solid', 'fa-sort'];
-                        break;
-                    case null: 
-                        this.sorting.type = true; 
-                        this.sorting.classes = ['fa-solid', 'fa-sort-up'];
-                        break;
-                }
-                if(sorting instanceof Function) {
-                    sorting();
-                }
-            };
-            this.sorting.event();
-        } else {
-            this.sorting = null;
-        }
-        return this;
-    }
-    getSorting() { return this.sorting; }
-    getSortingClasses() { return this.sorting.classes; }
-    getSortingEvent(...parameters) { return this.sorting.event(...parameters); }
-
-    setReference(reference) { this.reference = reference; return this; }
-    getReference() { return this.reference; }
+    setOrder(callback) { this.order = new Order(null, null, callback); return this; }
+    getOrder() { return this.order; }
 }
 
 export class Columns {
     constructor() {
         this.items = [];
-        this.sortingIndexes = [];
+        this.sortings = [];
     }
     
     setItems(items = []) { this.items = items; return this; }
     getItems() { return this.items; }
     
-    setSortingIndexes(sortingIndexes = []) { this.sortingIndexes = sortingIndexes; return this; }
-    getSortingIndexes() { return this.sortingIndexes; }
-    addSortingIndex(index) { 
-        if(!(index in this.sortingIndexes)) {
-            this.sortingIndexes.push(index); 
+    setSortings(sortings = []) { this.sortings = sortings; return this; }
+    getSortings() { return this.sortings; }
+    addSorting(item) { 
+        if(!this.sortings.includes(item)) {
+            this.sortings.push(item); 
+        }
+        if(item.getOrder()) {
+            const index = this.sortings.indexOf(item);
+            if(index !== -1) {
+                item.getOrder().setIndex(index + 1);
+            }
         }
         return this;
     }
-    delSortingIndex(index) { 
-        if(index in this.sortingIndexes) {
-            this.sortingIndexes.splice(index, 1);
+    delSorting(item) { 
+        if(this.sortings.includes(item)) {
+            this.sortings.splice(item, 1);
+        }
+        if(item.getOrder()) {
+            const index = this.sortings.indexOf(item);
+            if(index === -1) {
+                item.getOrder().setIndex();
+            }
+        }
+        for(const index in this.sortings) {
+            this.sortings[index].getOrder().setIndex(parseInt(index + 1));
         }
         return this;
     }
 
-    addItem(type, content = null, sorting = null) { 
-        const item = new Sorting(type, content);
+    addItem(label, type, content = null, sorting = null) { 
+        const item = new Column(type, label, content);
         this.items.push(item);
-        const index = this.sortingIndexes.length;
         if(sorting) {
-            const callback = function() {
-                switch(item.getType()) {
-                    case null: this.delSortingIndex(index); break;
-                    case true: case false: this.addSortingIndex(index); break;
+            const callback = () => {
+                switch(item.getOrder().getType()) {
+                    case null: this.delSorting(item); break;
+                    case true: case false: this.addSorting(item); break;
                 }
             };
-            this.addSortingIndex(index);
             if(sorting instanceof Function) {
-                item.setSorting(function() { callback(); sorting(); });
+                item.setOrder(function() { callback(); sorting(); });
             } else if(sorting) {
-                item.setSorting(function() { callback(); });
+                item.setOrder(function() { callback(); });
             }
         }
         return this;
     }
     getItemByIndex(index) { return this.items[index]; }
-
-    /*sortPlayers(index, a, b) {
-        switch(type) {
-            case true: a.getPropByReference
-        }
-      }
-    }*/
 }
